@@ -77,11 +77,15 @@ func (h *SSHHost) Init(ipAddress string, port int, username string, password str
 }
 
 // SetCiphers ... For those cranky hosts which would not like defaults
-func (h *SSHHost) SetCiphers(ciphers []string) error {
-	if len(ciphers) == 0 {
+func (h *SSHHost) SetCiphers(ciphers *[]string) error {
+	if ciphers == nil {
+		return errors.New("nil ciphers")
+	}
+	if len(*ciphers) == 0 {
 		return errors.New("Ciphers can't be len 0 ")
 	}
-	h.Config.Ciphers = ciphers
+	h.Config.Ciphers = *ciphers
+	h.Config.HostKeyAlgorithms = *ciphers
 	return nil
 }
 
