@@ -89,7 +89,7 @@ func (h *SSHHost) Connect() error {
 	return nil
 }
 
-func (h *SSHHost) RunCommand(commandline string) (string, error) {
+func (h *SSHHost) RunCommand(commandline string) (*string, error) {
 	session, err := h.Client.NewSession()
 	if err != nil {
 		log.Println("Error : Can't create new session to the host ", h.hostAddress)
@@ -102,7 +102,7 @@ func (h *SSHHost) RunCommand(commandline string) (string, error) {
 	}
 	session.Close()
 	outputString := string(output)
-	return outputString, nil
+	return &outputString, nil
 
 }
 
@@ -129,15 +129,15 @@ func (h *SSHHost) DownloadFile(remotePath string, localPath string) error {
 }
 
 func (h *SSHHost) UploadFile(remotePath string, localPath string) error {
-
+ return nil
 }
 
 func (h *SSHHost) DownloadDir(renotePath string, localPath string) error {
-
+ return nil
 }
 
 func (h *SSHHost) UploadDir(hostPath string, localPath string) error {
-
+ return nil
 }
 
 func (h *SSHHost) Close() {
