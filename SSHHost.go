@@ -85,10 +85,7 @@ func (h *SSHHost) SetCiphers(ciphers *[]string) error {
 		return errors.New("Ciphers can't be len 0 ")
 	}
 	h.Config.Ciphers = *ciphers
-<<<<<<< HEAD
 	h.Config.HostKeyAlgorithms = *ciphers
-=======
->>>>>>> 1df76880f29a5b68f85b059dd096c5f31cf850a8
 	return nil
 }
 
