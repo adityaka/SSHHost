@@ -129,15 +129,15 @@ func (h *SSHHost) DownloadFile(remotePath string, localPath string) error {
 }
 
 func (h *SSHHost) UploadFile(remotePath string, localPath string) error {
- return nil
+	return nil
 }
 
 func (h *SSHHost) DownloadDir(renotePath string, localPath string) error {
- return nil
+	return nil
 }
 
 func (h *SSHHost) UploadDir(hostPath string, localPath string) error {
- return nil
+	return nil
 }
 
 func (h *SSHHost) Close() {
