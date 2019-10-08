@@ -2,14 +2,16 @@ package SSHHost
 
 import (
 	"errors"
-	"github.com/tmc/scp"
-	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/tmc/scp"
+	"golang.org/x/crypto/ssh"
 )
 
+// SSHHost is the base struct for all SSH stuff
 type SSHHost struct {
 	hostAddress string
 	Config      *ssh.ClientConfig
@@ -39,6 +41,7 @@ func (h *SSHHost) createPublicKeys(keyfile string) (authmethod ssh.AuthMethod, e
 
 }
 
+// Init ... Initialize SSHHost
 func (h *SSHHost) Init(ipAddress string, port int, username string, password string, keyfile string) (*SSHHost, error) {
 	log.Println("Enter SSHHost Init")
 	h.hostAddress = ipAddress + ":" + strconv.Itoa(port)
@@ -70,10 +73,19 @@ func (h *SSHHost) Init(ipAddress string, port int, username string, password str
 		return nil, err
 	}
 
-	h.IsConnected = true
 	return h, nil
 }
 
+// SetCiphers ... For those cranky hosts which would not like defaults
+func (h *SSHHost) SetCiphers(ciphers []string) error {
+	if len(ciphers) == 0 {
+		return errors.New("Ciphers can't be len 0 ")
+	}
+	h.Config.Ciphers = ciphers
+	return nil
+}
+
+// Connect to the Server called by Init and someone
 func (h *SSHHost) Connect() error {
 	if !h.IsConnected {
 		var err error
@@ -82,13 +94,15 @@ func (h *SSHHost) Connect() error {
 			log.Println("SSH connection failed ", err)
 			return err
 		} else {
-
+			h.IsConnected = true
 		}
 	}
+
 	// no need to connect if it's already connected
 	return nil
 }
 
+// RunCommand ... Run a command over SSH and get stdout as result
 func (h *SSHHost) RunCommand(commandline string) (*string, error) {
 	session, err := h.Client.NewSession()
 	if err != nil {
@@ -106,6 +120,7 @@ func (h *SSHHost) RunCommand(commandline string) (*string, error) {
 
 }
 
+// DownloadFile ...
 func (h *SSHHost) DownloadFile(remotePath string, localPath string) error {
 	fileInfo, err := os.Stat(localPath)
 	if err != nil {
