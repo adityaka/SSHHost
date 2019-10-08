@@ -12,20 +12,20 @@ import (
 
 type SSHHost struct {
 	hostAddress string
-	Config *ssh.ClientConfig
-	Client *ssh.Client
+	Config      *ssh.ClientConfig
+	Client      *ssh.Client
 	IsConnected bool
 }
 
-func (h *SSHHost) createPublicKeys(keyfile string) (authmethod ssh.AuthMethod, err error){
+func (h *SSHHost) createPublicKeys(keyfile string) (authmethod ssh.AuthMethod, err error) {
 
-	_,err = os.Stat(keyfile)
-	if err != nil{
-		log.Println("Couldn't access keyfile specified " , keyfile)
-		return nil,err
+	_, err = os.Stat(keyfile)
+	if err != nil {
+		log.Println("Couldn't access keyfile specified ", keyfile)
+		return nil, err
 	}
 
-	buffer,err := ioutil.ReadFile(keyfile)
+	buffer, err := ioutil.ReadFile(keyfile)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (h *SSHHost) createPublicKeys(keyfile string) (authmethod ssh.AuthMethod, e
 
 }
 
-func (h *SSHHost) Init(ipAddress string, port int, username string, password string, keyfile string)  (*SSHHost, error) {
+func (h *SSHHost) Init(ipAddress string, port int, username string, password string, keyfile string) (*SSHHost, error) {
 	log.Println("Enter SSHHost Init")
 	h.hostAddress = ipAddress + ":" + strconv.Itoa(port)
 	h.IsConnected = false
@@ -48,7 +48,7 @@ func (h *SSHHost) Init(ipAddress string, port int, username string, password str
 	h.Config.User = username
 	h.Config.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 	if len(password) > 0 {
-		h.Config.Auth = [] ssh.AuthMethod{
+		h.Config.Auth = []ssh.AuthMethod{
 			ssh.Password(password),
 		}
 	} else {
@@ -58,7 +58,7 @@ func (h *SSHHost) Init(ipAddress string, port int, username string, password str
 			return h, err
 		}
 
-		h.Config.Auth = []  ssh.AuthMethod {
+		h.Config.Auth = []ssh.AuthMethod{
 			keysMethod,
 		}
 	}
@@ -74,15 +74,14 @@ func (h *SSHHost) Init(ipAddress string, port int, username string, password str
 	return h, nil
 }
 
-
-func (h *SSHHost ) Connect()  error {
-	if 	!h.IsConnected{
+func (h *SSHHost) Connect() error {
+	if !h.IsConnected {
 		var err error
-		h.Client, err = ssh.Dial("tcp", h.hostAddress,  h.Config )
+		h.Client, err = ssh.Dial("tcp", h.hostAddress, h.Config)
 		if err != nil {
 			log.Println("SSH connection failed ", err)
-			return  err
-		}else{
+			return err
+		} else {
 
 		}
 	}
@@ -90,7 +89,7 @@ func (h *SSHHost ) Connect()  error {
 	return nil
 }
 
-func (h *SSHHost) RunCommand(commandline string) (string,  error) {
+func (h *SSHHost) RunCommand(commandline string) (string, error) {
 	session, err := h.Client.NewSession()
 	if err != nil {
 		log.Println("Error : Can't create new session to the host ", h.hostAddress)
@@ -107,8 +106,7 @@ func (h *SSHHost) RunCommand(commandline string) (string,  error) {
 
 }
 
-
-func (h* SSHHost) DownloadFile(remotePath string, localPath string) error {
+func (h *SSHHost) DownloadFile(remotePath string, localPath string) error {
 	fileInfo, err := os.Stat(localPath)
 	if err != nil {
 		log.Println("Error: problem accessing ", localPath, " error: ", err)
@@ -123,26 +121,26 @@ func (h* SSHHost) DownloadFile(remotePath string, localPath string) error {
 	session, err := h.Client.NewSession()
 	if err != nil {
 		log.Println("Error : Can't create new session to the host ", h.hostAddress)
-		return  err
+		return err
 	}
 
-	err = scp.CopyPath(localPath, remotePath, session )
+	err = scp.CopyPath(localPath, remotePath, session)
 	return err
 }
 
-func (h* SSHHost) UploadFile (remotePath string, localPath string) error {
+func (h *SSHHost) UploadFile(remotePath string, localPath string) error {
 
 }
 
-func (h* SSHHost) DownloadDir (renotePath string, localPath string) error {
+func (h *SSHHost) DownloadDir(renotePath string, localPath string) error {
 
 }
 
-func (h* SSHHost) UploadDir (hostPath string, localPath string) error {
+func (h *SSHHost) UploadDir(hostPath string, localPath string) error {
 
 }
 
-func (h *SSHHost) Close(){
+func (h *SSHHost) Close() {
 	if h.IsConnected {
 		h.Client.Close()
 	}
