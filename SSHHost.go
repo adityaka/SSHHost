@@ -67,12 +67,9 @@ func (h *SSHHost) Init(ipAddress string, port int, username string, password str
 	}
 
 	log.Println("SSH Configuration complete. Initializing client")
-	err := h.Connect()
-	if err != nil {
-		log.Println("Failed to connect to host ", h.hostAddress, "Error ", err)
-		return nil, err
-	}
-
+	// Issue 1: SSHHost becomes nil if the connection fails.
+	// we get a panic. Removing the connect code out of the
+	// init.
 	return h, nil
 }
 
@@ -93,6 +90,7 @@ func (h *SSHHost) SetCiphers(ciphers *[]string) error {
 func (h *SSHHost) Connect() error {
 	if !h.IsConnected {
 		var err error
+		// Issue 1: Adding the connect here
 		h.Client, err = ssh.Dial("tcp", h.hostAddress, h.Config)
 		if err != nil {
 			log.Println("SSH connection failed ", err)
@@ -108,6 +106,9 @@ func (h *SSHHost) Connect() error {
 
 // RunCommand ... Run a command over SSH and get stdout as result
 func (h *SSHHost) RunCommand(commandline string) (*string, error) {
+	if h.Client == nil {
+		return nil, errors.New("Client is not initialized")
+	}
 	session, err := h.Client.NewSession()
 	if err != nil {
 		log.Println("Error : Can't create new session to the host ", h.hostAddress)
