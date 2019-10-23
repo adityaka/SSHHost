@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/tmc/scp"
+	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -127,39 +127,53 @@ func (h *SSHHost) RunCommand(commandline string) (*string, error) {
 
 // DownloadFile ...
 func (h *SSHHost) DownloadFile(remotePath string, localPath string) error {
-	fileInfo, err := os.Stat(localPath)
+
+	client, err := sftp.NewClient(h.Client)
 	if err != nil {
-		log.Println("Error: problem accessing ", localPath, " error: ", err)
+		log.Println("DownloadFile : Failed to create sftp client", err)
+		return err
+	}
+	defer client.Close()
+	remoteStat, err := client.Stat(remotePath)
+	if err != nil {
+		log.Println("DownloadFile : Remote Stat Failed")
+	}
+	if remoteStat.Mode().IsDir() {
+		return errors.New("DownloadFile : " + remotePath + " is a directory")
+	}
+
+	localFile, err := os.OpenFile(localPath, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		log.Println("DownloadFile: Couldn't Open local file ", err)
+	}
+
+	bytes, err := client.ReadTo(localFile)
+	if err != nil || bytes != remoteStat.Size() {
+		log.Println("DownloadFile : failed to copy file completely. remote file size ", bytes)
+		os.Remove(localPath)
 		return err
 	}
 
-	if !fileInfo.IsDir() {
-		log.Println("Error : ", localPath, " is not a directory")
-		return errors.New("Error : " + localPath + " is not a directory")
-	}
+	return nil
 
-	session, err := h.Client.NewSession()
-	if err != nil {
-		log.Println("Error : Can't create new session to the host ", h.hostAddress)
-		return err
-	}
-
-	err = scp.CopyPath(localPath, remotePath, session)
-	return err
 }
 
+// UploadFile ...
 func (h *SSHHost) UploadFile(remotePath string, localPath string) error {
-	return nil
+	return errors.New("Not Implemented")
 }
 
+// DownloadDir ...
 func (h *SSHHost) DownloadDir(renotePath string, localPath string) error {
-	return nil
+	return errors.New("Not Implemented")
 }
 
+// UploadDir ...
 func (h *SSHHost) UploadDir(hostPath string, localPath string) error {
-	return nil
+	return errors.New("Not Implemented")
 }
 
+// Close ...
 func (h *SSHHost) Close() {
 	if h.IsConnected {
 		h.Client.Close()
