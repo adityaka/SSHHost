@@ -142,12 +142,17 @@ func (h *SSHHost) DownloadFile(remotePath string, localPath string) error {
 		return errors.New("DownloadFile : " + remotePath + " is a directory")
 	}
 
+	remoteFile, err := client.Open(remotePath)
+	if err != nil {
+		log.Print("Can't open remote file for download ", err)
+	}
+
 	localFile, err := os.OpenFile(localPath, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		log.Println("DownloadFile: Couldn't Open local file ", err)
 	}
 
-	bytes, err := client.ReadTo(localFile)
+	bytes, err := remoteFile.WriteTo(localFile)
 	if err != nil || bytes != remoteStat.Size() {
 		log.Println("DownloadFile : failed to copy file completely. remote file size ", bytes)
 		os.Remove(localPath)
