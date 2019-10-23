@@ -126,7 +126,7 @@ func (h *SSHHost) RunCommand(commandline string) (*string, error) {
 }
 
 // DownloadFile ...
-func (h *SSHHost) DownloadFile(remotePath string, localPath string) error {
+func (h *SSHHost) DownloadFile(remotePath, localPath string) error {
 
 	client, err := sftp.NewClient(h.Client)
 	if err != nil {
@@ -164,8 +164,55 @@ func (h *SSHHost) DownloadFile(remotePath string, localPath string) error {
 }
 
 // UploadFile ...
-func (h *SSHHost) UploadFile(remotePath string, localPath string) error {
-	return errors.New("Not Implemented")
+func (h *SSHHost) UploadFile(localPath, remotePath string) error {
+	client, err := sftp.NewClient(h.Client)
+	if err != nil {
+		log.Print("UploadFile: Can't open sftp client ", err)
+		return err
+	}
+
+	localFileInfo, err := os.Stat(localPath)
+
+	if err != nil {
+		log.Println("Can't find the local file ", err)
+		return err
+	}
+
+	if localFileInfo.Mode().IsDir() {
+		log.Println("UploadFile : Can't upload directory use UploadDirectory interface ")
+		return errors.New("UploadFile: Can't upload a directory ")
+	}
+	localFile, err := os.Open(localPath)
+	if err != nil {
+		log.Println("UploadFile : Can't open local file")
+		return err
+	}
+	defer localFile.Close()
+	remoteFileInfo, _ := client.Stat(remotePath)
+	if remoteFileInfo != nil {
+		if remoteFileInfo.Mode().IsDir() {
+			log.Println("UploadFile: ", remotePath, " is a directory ")
+			//TODO: add the logic to append the local file name to the directory path
+			return errors.New("file name required, directory path is not sufficient")
+		} else {
+			log.Println("UploadFile : File exists, it will be overwritted")
+		}
+	}
+
+	remoteFile, err := client.OpenFile(remotePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+	if err != nil {
+		log.Println("UploadFile : can't open remote file")
+		return err
+	}
+	defer remoteFile.Close()
+	_, err = remoteFile.ReadFrom(localFile)
+	if err != nil {
+		log.Println("UploadFile : Upload failed !")
+		return err
+	}
+
+	return nil
+
 }
 
 // DownloadDir ...
